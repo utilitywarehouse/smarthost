@@ -1,11 +1,6 @@
 #Dockerfile for a Postfix email relay service
-#FROM debian:bullseye
 FROM alpine:latest
 
-#ENV DEBIAN_FRONTEND="noninteractive"
-
-#RUN apt-get update && apt-get upgrade -y
-#RUN apt-get install -y postfix mailutils procps iputils-ping
 
 RUN        true && \
            apk add 'postfix>3.4.0' && \
