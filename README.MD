@@ -27,9 +27,9 @@ Relayhost Server
 
 `debug_peer_list`  -->
 If you need to debug e-mails for an specific domain, you can run the container using this parameter. Ex:
-debug_peer_list = google.com 
+`debug_peer_list = google.com`
 or
-debug_peer_list = google.com, 64.233.167.26
+`debug_peer_list = google.com, 64.233.167.26`
 
 
 4. Running it :
