@@ -1,4 +1,4 @@
-##Simple Dockerized version of Posffix
+## Simple Dockerized version of Posffix for relayhost
 
 
 1- Minimalist version of postfix to work primarily as relayhost using SASL auth. It is using Alpine latest and Postfix>3.4
@@ -10,22 +10,22 @@
 3- The following arguments can be overridden during the startup:
 
 
-`smtp_sasl_password_maps`
+`smtp_sasl_password_maps` -->
 The Key used to to authenticate to the relayhost
 
-`myhostname`
+`myhostname` -->
 The hostname that will be used by Postfix on SMTP handshake
 
-`myorigin`
+`myorigin`-->
 Domain used to send emails
 
-`mynetwork`
+`mynetwork` -->
 Network allowed to send emails using this docker
 
-`relayhost`
+`relayhost` --> 
 Relayhost Server
 
-`debug_peer_list`
+`debug_peer_list`  -->
 If you need to debug e-mails for an specific domain, you can run the container using this parameter. Ex:
 debug_peer_list = google.com 
 or
@@ -33,6 +33,7 @@ debug_peer_list = google.com, 64.233.167.26
 
 
 4- Running it :
+
 ```
 docker run -d --rm --name postfix -e "myhostname=emails.utilitywarehouse.co.uk" -e "mynetworks=127.0.0.0/8 10.0.0.0/8 172.16.0.0/12" -e "relayhost=[email-smtp.eu-west-1.amazonaws.com]:587" -e "smtp_sasl_password_maps=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" -e "myorigin=utilitywarehouse.co.uk" -p25:25 postfix 
 ```
