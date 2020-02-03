@@ -14,5 +14,5 @@ COPY etc/resolv.conf /var/spool/postfix/etc/
 COPY postconf.sh /bin/
 RUN touch /etc/aliases  && touch /etc/postfix/virtual_alias && postmap /etc/postfix/virtual_alias && touch /etc/postfix/blacklisted_domains && postmap /etc/postfix/blacklisted_domains
 RUN newaliases
-
+RUN ln -s /dev/null /var/log/mail.log
 ENTRYPOINT ["/bin/bash" , "postconf.sh"]
