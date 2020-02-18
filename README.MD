@@ -18,9 +18,9 @@ docker build -t postfix postfix/
 - `myorigin` - Domain used to send emails
 - `mynetwork` - Network allowed to send emails using this docker
 - `relayhost` - Relayhost Server
-- `debug_peer_list` - If you need to debug e-mails for a specific domain, you can
-  run the container using this parameter. Ex: `debug_peer_list = google.com` or
-- `debug_peer_list = google.com, 64.233.167.26`
+- `debug_peer_list` - If you need to debug e-mails for a specific domain, you
+  can run the container using this parameter. Ex: `debug_peer_list = google.com`
+  or `debug_peer_list = google.com, 64.233.167.26`
 
 ## Running
 
