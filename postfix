@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
+postconf -e "myhostname = ${MYHOSTNAME}"
+postconf -e "myorigin = ${MYORIGIN}"
+postconf -e "mynetworks = ${MYNETWORKS}"
+postconf -e "relayhost = ${RELAYHOST}"
+postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
+exec /usr/sbin/postfix start-fg
