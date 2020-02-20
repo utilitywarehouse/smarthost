@@ -20,4 +20,3 @@ echo "quit"
 }
 
 mail_input | netcat $server $port || err_exit 
-

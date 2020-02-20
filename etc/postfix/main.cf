@@ -1,5 +1,6 @@
-# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+# https://sources.debian.org/src/postfix/3.4.9-1/conf/main.cf/
 
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
 
 # Debian specific:  Specifying a file name will cause the first
 # line of that file to be used as the name.  The Debian default
