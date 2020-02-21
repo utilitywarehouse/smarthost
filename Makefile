@@ -1,7 +1,7 @@
 build:
 	docker build -t postfix .
 run:
-	docker run --rm --name postfix\
+	docker run -ti --rm --name postfix \
 	  -e "MYHOSTNAME=$(MYHOSTNAME)" \
 	  -e "MYNETWORKS=$(MYNETWORKS)" \
 	  -e "RELAYHOST=$(RELAYHOST)" \

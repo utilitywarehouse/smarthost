@@ -1,10 +1,28 @@
 #!/bin/sh
 
 set -e
+
+log() {
+  echo "$(date -I'seconds') $1"
+}
+
+shutdown() {
+  log "shutdown"
+  /usr/sbin/postfix stop
+  log "stopped postfix: exit-code=$?"
+  exit 0
+}
+
+trap 'shutdown' HUP INT QUIT KILL TERM
+
 postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 postconf -e "myhostname = ${MYHOSTNAME}"
 postconf -e "myorigin = ${MYORIGIN}"
 postconf -e "mynetworks = ${MYNETWORKS}"
 postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
-exec /usr/sbin/postfix start-fg
+
+# run postfix
+/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v ${LOG_FILTER_REGEX:-"^$"} &
+
+wait ${!}

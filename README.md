@@ -15,6 +15,7 @@ It is using Alpine latest and Postfix>3.4
 - `DEBUG_PEER_LIST` - If you need to debug e-mails for a specific domain, you
   can run the container using this parameter. Ex: `DEBUG_PEER_LIST = google.com`
   or `DEBUG_PEER_LIST = google.com, 64.233.167.26`
+- `LOG_FILTER_REGEX` - (string) regex to filter out noisy logs
 
 ## Running
 
