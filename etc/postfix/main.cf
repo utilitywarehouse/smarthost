@@ -25,25 +25,27 @@ smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 # See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
 # information on enabling SSL in the smtp client.
 
-smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = fake_hostname
-alias_maps = hash:/etc/aliases
-virtual_alias_maps = hash:/etc/postfix/virtual_alias
 alias_database = hash:/etc/aliases
-myorigin = fake_origin
-mydestination = localhost
-mynetworks = 127.0.0.0/8
+alias_maps = hash:/etc/aliases
 debug_peer_list = 127.0.0.1
-mailbox_size_limit = 0
-recipient_delimiter = +
+header_size_limit = 4096000
 inet_interfaces = all
 inet_protocols = ipv4
-smtp_sasl_auth_enable = yes
+mailbox_size_limit = 0
+mydestination = localhost
+myhostname = fake_hostname
+mynetworks = 127.0.0.0/8
+myorigin = fake_origin
+recipient_delimiter = +
 relayhost = [your_relay_host_here]:587
+smtp_sasl_auth_enable = yes
 smtp_sasl_password_maps = static:
-
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
-header_size_limit = 4096000
-
 smtpd_recipient_restrictions = check_recipient_access hash:/etc/postfix/blacklisted_domains, permit_mynetworks, reject_unauth_destination, permit
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+virtual_alias_maps = hash:/etc/postfix/virtual_alias
+
+compatibility_level=2
+
+maillog_file = /dev/stdout
