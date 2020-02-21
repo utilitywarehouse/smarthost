@@ -29,6 +29,17 @@ export SMTP_SASL_PASSWORD_MAPS="AKIAIOSFODNN7EXAMPLE:wJalrXUtnFEMI/K7MDENG/bPxRf
 make run
 ```
 
+## Log filtering
+
+Postfix doesn't provide a nice OOB solution for controlling logs. Running
+behind a load-balancer produces a lot of noise in form of "connect /
+disconnect" logs. You can filter these by exporting the following filter
+string:
+
+```
+export LOG_FILTER_REGEX="(lost connection after CONNECT from |(dis)?connect from )"
+```
+
 Postfix version needs to be > 3.4 (from that version the logging at /dev/stdout
 is supported)
 
