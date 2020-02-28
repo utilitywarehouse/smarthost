@@ -23,6 +23,6 @@ postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 
 # run postfix
-/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v ${LOG_FILTER_REGEX:-"^$"} &
+/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
 wait ${!}
