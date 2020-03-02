@@ -37,7 +37,7 @@ disconnect" logs. You can filter these by exporting the following filter
 string:
 
 ```
-export LOG_FILTER_REGEX="(lost connection after CONNECT from |(dis)?connect from )"
+export LOG_FILTER_REGEX="(lost connection after |(dis)?connect from )"
 ```
 
 Postfix version needs to be > 3.4 (from that version the logging at /dev/stdout
