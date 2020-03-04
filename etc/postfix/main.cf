@@ -48,4 +48,11 @@ virtual_alias_maps = hash:/etc/postfix/virtual_alias
 
 compatibility_level=2
 
+## Run in container
 maillog_file = /dev/stdout
+
+## SES envelope rewrite
+## https://serverfault.com/questions/499955/aws-ses-email-address-is-not-verified-error-with-postfix-relay
+sender_canonical_maps = regexp:/etc/postfix/sender_canonical
+sender_canonical_classes = envelope_sender
+smtpd_data_restrictions = check_sender_access pcre:/etc/postfix/sender_access
