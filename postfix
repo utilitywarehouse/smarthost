@@ -17,6 +17,7 @@ trap 'shutdown' HUP INT QUIT KILL TERM
 
 postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 postconf -e "myhostname = ${MYHOSTNAME}"
+postconf -e "mydestination = localhost, ${MYDESTINATION}"
 postconf -e "myorigin = ${MYORIGIN}"
 postconf -e "mynetworks = ${MYNETWORKS}"
 postconf -e "relayhost = ${RELAYHOST}"
@@ -28,6 +29,6 @@ if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
 fi
 
 # run postfix
-/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v ${LOG_FILTER_REGEX:-"^$"} &
+/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
 wait ${!}
