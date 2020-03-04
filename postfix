@@ -25,7 +25,7 @@ postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 
 if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
-  echo "/(.*)/  prepend X-Envelope-From: <$1>" > /etc/postfix/sender_access
+  echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
 fi
 
 # run postfix
