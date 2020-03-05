@@ -26,7 +26,7 @@ postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 
 # run postsrsd
-postsrsd -d $(postconf -h mydomain) -s /etc/postsrsd.secret
+postsrsd -d $(postconf -h mydomain) -s /etc/postsrsd/postsrsd.secret
 
 # run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
