@@ -48,4 +48,11 @@ virtual_alias_maps = hash:/etc/postfix/virtual_alias
 
 compatibility_level=2
 
+## log to stdout - running in a container
 maillog_file = /dev/stdout
+
+## postsrsd config
+sender_canonical_maps = tcp:localhost:10001
+sender_canonical_classes = envelope_sender
+recipient_canonical_maps = tcp:localhost:10002
+recipient_canonical_classes= envelope_recipient,header_recipient

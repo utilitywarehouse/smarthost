@@ -10,6 +10,8 @@ shutdown() {
   log "shutdown"
   /usr/sbin/postfix stop
   log "stopped postfix: exit-code=$?"
+  pkill postsrsd
+  log "stopped postsrsd: exit-code=$?"
   exit 0
 }
 
@@ -22,6 +24,9 @@ postconf -e "myorigin = ${MYORIGIN}"
 postconf -e "mynetworks = ${MYNETWORKS}"
 postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
+
+# run postsrsd
+postsrsd -d $(postconf -h mydomain) -s /etc/postsrsd.secret
 
 # run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
