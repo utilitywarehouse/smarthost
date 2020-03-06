@@ -15,22 +15,31 @@ shutdown() {
 
 trap 'shutdown' HUP INT QUIT KILL TERM
 
-postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
-postconf -e "myhostname = ${MYHOSTNAME}"
-postconf -e "mydestination = localhost, ${MYDESTINATION}"
-postconf -e "myorigin = ${MYORIGIN}"
-postconf -e "mynetworks = ${MYNETWORKS}"
-postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
+postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
+postconf -e "mydestination = localhost, ${MYDESTINATION}"
+postconf -e "myhostname = ${MYHOSTNAME}"
+postconf -e "mynetworks = ${MYNETWORKS}"
+postconf -e "myorigin = ${MYORIGIN}"
+postconf -e "relayhost = ${RELAYHOST}"
+postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
+postconf -e "virtual_alias_maps = hash:${VIRTUAL_LOC}"
 
 if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
-  echo "/^From:(.*)/ REPLACE From: <${SENDER_CANONICAL_ADDRESS}>" >  /etc/postfix/second_header_checks
+  echo '/^From:(.*)<\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b>/ REPLACE From:$1<'${SENDER_CANONICAL_ADDRESS}'>' > /etc/postfix/second_header_checks
   echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
   echo '/^From: (.*)/ PREPEND Reply-to: $1' > /etc/postfix/header_checks
 fi
 
-# run postfix
+## run 'virtual' watcher
+#echo '#!/bin/sh
+#if [ "$#" -eq 3 ] && [ "$3" == "..data" ]; then
+#  echo "[" $(date -uIseconds) "] /etc/postfix/virtual_alias changed, running `postmap`"
+#  postmap /etc/postfix/virtual_alias
+#fi' > /reload && chmod +x /reload && inotifyd /reload /etc/postfix/virtual_alias:y &
+
+## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
 wait ${!}
