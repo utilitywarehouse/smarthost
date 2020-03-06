@@ -53,7 +53,8 @@ maillog_file = /dev/stdout
 
 ## SES envelope rewrite
 ## https://serverfault.com/questions/499955/aws-ses-email-address-is-not-verified-error-with-postfix-relay
-sender_canonical_maps = regexp:/etc/postfix/sender_canonical
-sender_canonical_classes = envelope_sender, header_sender
-smtpd_data_restrictions = check_sender_access pcre:/etc/postfix/sender_access
 header_checks = regexp:/etc/postfix/header_checks
+sender_canonical_classes = envelope_sender, header_sender
+sender_canonical_maps = regexp:/etc/postfix/sender_canonical
+smtp_header_checks = pcre:/etc/postfix/second_header_checks
+smtpd_data_restrictions = check_sender_access pcre:/etc/postfix/sender_access

@@ -25,6 +25,7 @@ postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 
 if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
+  echo "/^From:(.*)/ REPLACE From: <${SENDER_CANONICAL_ADDRESS}>" >  /etc/postfix/second_header_checks
   echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
   echo '/^From: (.*)/ PREPEND Reply-to: $1' > /etc/postfix/header_checks
 fi
