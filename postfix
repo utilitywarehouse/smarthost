@@ -39,7 +39,12 @@ if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
 fi
 
 ## run 'virtual' watcher
+##
+## This watches custom "virtual" file location, and on change - copies it over
+## to /etc/postfix/virtual + runs `postmap /etc/postfix/virtual` to update
+## alias.db
 if [[ -n ${VIRTUAL_LOC} ]]; then
+  mkdir -p $(dirname ${VIRTUAL_LOC})
   echo '#!/bin/sh
   if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${VIRTUAL_LOC}')" ]; then
     echo "[" $(date -uIseconds) "] '${VIRTUAL_LOC}' changed, rebuilding postmap"
