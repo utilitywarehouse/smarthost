@@ -8,6 +8,10 @@ log() {
 
 shutdown() {
   log "shutdown"
+  if [[ -n ${VIRTUAL_LOC} ]]; then
+    pkill inotifyd
+    log "stopped inotifyd: exit-code=$?"
+  fi
   /usr/sbin/postfix stop
   log "stopped postfix: exit-code=$?"
   exit 0
@@ -15,15 +19,40 @@ shutdown() {
 
 trap 'shutdown' HUP INT QUIT KILL TERM
 
-postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
-postconf -e "myhostname = ${MYHOSTNAME}"
-postconf -e "mydestination = localhost, ${MYDESTINATION}"
-postconf -e "myorigin = ${MYORIGIN}"
-postconf -e "mynetworks = ${MYNETWORKS}"
-postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
+postconf -e "mydestination = localhost, ${MYDESTINATION}"
+postconf -e "myhostname = ${MYHOSTNAME}"
+postconf -e "mynetworks = ${MYNETWORKS}"
+postconf -e "myorigin = ${MYORIGIN}"
+postconf -e "relayhost = ${RELAYHOST}"
+postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 
-# run postfix
+## validate SPF
+sed -i '/postlog/a\\policy-spf  unix  -       n       n       -       -       spawn \n user=nobody argv=/usr/bin/postfix-policyd-spf-perl' /etc/postfix/master.cf
+
+if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
+  echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
+  echo '/^From:(.*)<\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b>/ REPLACE From:$1<'${SENDER_CANONICAL_ADDRESS}'>' > /etc/postfix/second_header_checks
+  echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
+  echo '/^From: (.*)/ PREPEND Reply-to: $1' > /etc/postfix/header_checks
+fi
+
+## run 'virtual' watcher
+##
+## This watches custom "virtual" file location, and on change - copies it over
+## to /etc/postfix/virtual + runs `postmap /etc/postfix/virtual` to update
+## alias.db
+if [[ -n ${VIRTUAL_LOC} ]]; then
+  mkdir -p $(dirname ${VIRTUAL_LOC})
+  echo '#!/bin/sh
+  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${VIRTUAL_LOC}')" ]; then
+    echo "[" $(date -uIseconds) "] '${VIRTUAL_LOC}' changed, rebuilding postmap"
+    cp '${VIRTUAL_LOC}' /etc/postfix/virtual
+    postmap /etc/postfix/virtual
+  fi' > /reload && chmod +x /reload && inotifyd /reload $(dirname ${VIRTUAL_LOC}):y &
+fi
+
+## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
 wait ${!}
