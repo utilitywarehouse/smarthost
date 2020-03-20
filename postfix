@@ -30,6 +30,9 @@ postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 ## validate SPF
 sed -i '/postlog/a\\policy-spf  unix  -       n       n       -       -       spawn \n user=nobody argv=/usr/bin/postfix-policyd-spf-perl' /etc/postfix/master.cf
 
+## Adding Gmail style ( ignoring dots). 
+echo "/^(.*)\.(.*)@((.*\.)*UW\.PARTNERS)$/ ${1}${2}@${3}" > /etc/postfix/canonical
+
 if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
   echo '/^From:(.*)<\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b>/ REPLACE From:$1<'${SENDER_CANONICAL_ADDRESS}'>' > /etc/postfix/second_header_checks

@@ -47,6 +47,7 @@ smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_una
 virtual_alias_maps = hash:/etc/postfix/virtual
 policy-spf_time_limit = 3600s
 compatibility_level=2
+recipient_canonical_maps = regexp:/etc/postfix/canonical
 
 ## Run in container
 maillog_file = /dev/stdout
