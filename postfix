@@ -26,7 +26,6 @@ postconf -e "mynetworks = ${MYNETWORKS}"
 postconf -e "myorigin = ${MYORIGIN}"
 postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
-postconf -e "smtpd_tls_security_level = ${TLS_SECURITY_LEVEL}"
 postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
@@ -60,5 +59,23 @@ fi
 
 ## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
+
+## Reload config when tls certificate files are changed
+## tls certificate
+if [[ -n ${TLS_CERT_PATH} ]]; then
+  echo '#!/bin/sh
+  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${TLS_CERT_PATH}')" ]; then
+    echo "[" $(date -uIseconds) "] '${TLS_CERT_PATH}' changed, postfix reload"
+    /usr/sbin/postfix reload
+  fi' > /reload-tls-cert && chmod +x /reload-tls-cert && inotifyd /reload-tls-cert $(dirname ${TLS_CERT_PATH}):y &
+fi
+## tls private key
+if [[ -n ${TLS_KEY_PATH} ]]; then
+  echo '#!/bin/sh
+  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${TLS_KEY_PATH}')" ]; then
+    echo "[" $(date -uIseconds) "] '${TLS_KEY_PATH}' changed, postfix reload"
+    /usr/sbin/postfix reload
+  fi' > /reload-tls-cert && chmod +x /reload-tls-cert && inotifyd /reload-tls-cert $(dirname ${TLS_KEY_PATH}):y &
+fi
 
 wait ${!}
