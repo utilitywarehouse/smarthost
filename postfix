@@ -60,22 +60,14 @@ fi
 ## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
-## Reload config when tls certificate files are changed
-## tls certificate
+## Reload config when tls certificate files are changed. This targets kubernetes
+## way of mounting secrets specifically!
 if [[ -n ${TLS_CERT_PATH} ]]; then
   echo '#!/bin/sh
-  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${TLS_CERT_PATH}')" ]; then
-    echo "[" $(date -uIseconds) "] '${TLS_CERT_PATH}' changed, postfix reload"
+  if [ "$#" -eq 3 ] && [ "$3" == "..data" ]; then
+    echo "[" $(date -uIseconds) "] certificates secret appears to have changed, postfix reload"
     /usr/sbin/postfix reload
   fi' > /reload-tls-cert && chmod +x /reload-tls-cert && inotifyd /reload-tls-cert $(dirname ${TLS_CERT_PATH}):y &
-fi
-## tls private key
-if [[ -n ${TLS_KEY_PATH} ]]; then
-  echo '#!/bin/sh
-  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${TLS_KEY_PATH}')" ]; then
-    echo "[" $(date -uIseconds) "] '${TLS_KEY_PATH}' changed, postfix reload"
-    /usr/sbin/postfix reload
-  fi' > /reload-tls-cert && chmod +x /reload-tls-cert && inotifyd /reload-tls-cert $(dirname ${TLS_KEY_PATH}):y &
 fi
 
 wait ${!}
