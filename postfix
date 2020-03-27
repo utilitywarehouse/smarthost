@@ -26,6 +26,7 @@ postconf -e "mynetworks = ${MYNETWORKS}"
 postconf -e "myorigin = ${MYORIGIN}"
 postconf -e "relayhost = ${RELAYHOST}"
 postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
+postconf -e "smtpd_tls_security_level = ${TLS_SECURITY_LEVEL}"
 postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
