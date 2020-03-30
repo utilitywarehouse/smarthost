@@ -61,10 +61,10 @@ fi
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
 # Reload config on USR1 signal
-function PostfixReload {
+postfix_reload {
   echo "Received signal to reload postfix configuration"
   /usr/sbin/postfix reload
 }
-trap PostfixReload USR1
+trap postfix_reload USR1
 
 wait ${!}
