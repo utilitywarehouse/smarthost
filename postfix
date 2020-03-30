@@ -60,14 +60,11 @@ fi
 ## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
 
-## Reload config when tls certificate files are changed. This targets kubernetes
-## way of mounting secrets specifically!
-if [[ -n ${TLS_CERT_PATH} ]]; then
-  echo '#!/bin/sh
-  if [ "$#" -eq 3 ] && [ "$3" == "..data" ]; then
-    echo "[" $(date -uIseconds) "] certificates secret appears to have changed, postfix reload"
-    /usr/sbin/postfix reload
-  fi' > /reload-tls-cert && chmod +x /reload-tls-cert && inotifyd /reload-tls-cert $(dirname ${TLS_CERT_PATH}):y &
-fi
+# Reload config on USR1 signal
+function PostfixReload {
+  echo "Received signal to reload postfix configuration"
+  /usr/sbin/postfix reload
+}
+trap PostfixReload USR1
 
 wait ${!}
