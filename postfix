@@ -25,7 +25,6 @@ postfix_reload() {
 trap 'shutdown' HUP INT QUIT KILL TERM
 trap 'postfix_reload' USR1
 
-
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 postconf -e "mydestination = localhost, ${MYDESTINATION}"
 postconf -e "myhostname = ${MYHOSTNAME}"
