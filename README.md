@@ -18,6 +18,10 @@ It is using Alpine latest and Postfix>3.4
 - `LOG_FILTER_REGEX` - (string) regex to filter out noisy logs
 - `CANONICAL_PATTERN` - (string) pattern to map addresses (for example Gmail
   style dot removal)
+- `TLS_CERT_PATH` - (string) if using TLS to receive emails, path to
+  certificate file
+- `TLS_KEY_PATH` - (string) if using TLS to receive emails, path to
+  key file
 
 ## Running
 
