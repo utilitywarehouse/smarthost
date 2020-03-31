@@ -17,7 +17,14 @@ shutdown() {
   exit 0
 }
 
+postfix_reload() {
+  log "Received signal to reload postfix configuration"
+  /usr/sbin/postfix reload
+}
+
 trap 'shutdown' HUP INT QUIT KILL TERM
+trap 'postfix_reload' USR1
+
 
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 postconf -e "mydestination = localhost, ${MYDESTINATION}"
@@ -59,12 +66,5 @@ fi
 
 ## run postfix
 /usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
-
-# Reload config on USR1 signal
-postfix_reload {
-  echo "Received signal to reload postfix configuration"
-  /usr/sbin/postfix reload
-}
-trap postfix_reload USR1
 
 wait ${!}
