@@ -64,6 +64,8 @@ if [[ -n ${VIRTUAL_LOC} ]]; then
 fi
 
 ## run postfix
-/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v "${LOG_FILTER_REGEX:-"^$"}" &
+/usr/sbin/postfix start
 
-wait ${!}
+## tail the log file
+touch /var/log/maillog
+tail -f /var/log/maillog

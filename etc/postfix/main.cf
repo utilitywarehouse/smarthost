@@ -49,8 +49,11 @@ policy-spf_time_limit = 3600s
 compatibility_level=2
 recipient_canonical_maps = regexp:/etc/postfix/canonical
 
-## Run in container
-maillog_file = /dev/stdout
+## Run in a container
+##
+## Log to a file so prometheus exporter can tail the file and export metrics
+## from it
+maillog_file = /var/log/maillog
 
 ## SES envelope rewrite
 ## https://serverfault.com/questions/499955/aws-ses-email-address-is-not-verified-error-with-postfix-relay
