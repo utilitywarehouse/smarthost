@@ -42,10 +42,9 @@ smtp_sasl_auth_enable = yes
 smtp_sasl_password_maps = static:
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
-smtpd_recipient_restrictions = check_recipient_access hash:/etc/postfix/blacklisted_domains, permit_mynetworks, reject_unauth_destination, check_policy_service unix:private/policy-spf
+smtpd_recipient_restrictions = check_recipient_access hash:/etc/postfix/blacklisted_domains, permit_mynetworks, reject_unauth_destination
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 virtual_alias_maps = hash:/etc/postfix/virtual
-policy-spf_time_limit = 3600s
 compatibility_level=2
 recipient_canonical_maps = regexp:/etc/postfix/canonical
 

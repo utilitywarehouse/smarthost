@@ -35,9 +35,6 @@ postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
-## validate SPF
-sed -i '/postlog/a\\policy-spf  unix  -       n       n       -       -       spawn \n user=nobody argv=/usr/bin/postfix-policyd-spf-perl' /etc/postfix/master.cf
-
 ## Adding Gmail style ( ignoring dots). 
 echo "${CANONICAL_PATTERN}" > /etc/postfix/canonical
 
