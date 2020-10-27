@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -e -o pipefail
 
 log() {
   echo "$(date -I'seconds') $1"
@@ -61,8 +61,7 @@ if [[ -n ${VIRTUAL_LOC} ]]; then
 fi
 
 ## run postfix
-/usr/sbin/postfix start
-
-## tail the log file
-touch /var/log/maillog
-tail -f /var/log/maillog
+##
+## stderr + stdout are written to /var/log/maillog so the prometheus exporter can
+## tail the file and export metrics from it
+/usr/sbin/postfix start-fg 2>&1 | tee /var/log/maillog
