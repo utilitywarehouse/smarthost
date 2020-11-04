@@ -58,6 +58,13 @@ if [[ -n ${VIRTUAL_LOC} ]]; then
     cp '${VIRTUAL_LOC}' /etc/postfix/virtual
     postmap /etc/postfix/virtual
   fi' > /reload && chmod +x /reload && inotifyd /reload $(dirname ${VIRTUAL_LOC}):y &
+
+  ## rebuild immediately if the file already exists
+  if [[ -e ${VIRTUAL_LOC} ]]; then
+    echo "${VIRTUAL_LOC} already exists, rebuilding"
+    cp "${VIRTUAL_LOC}" /etc/postfix/virtual
+    postmap /etc/postfix/virtual
+  fi
 fi
 
 ## run postfix
