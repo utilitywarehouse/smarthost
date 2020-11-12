@@ -6,6 +6,7 @@ COPY postfix /
 RUN apk add --no-cache \
       'postfix>3.4.0' \
       'postfix-pcre>3.4.0' \
+      postfix-policyd-spf-perl \
       ca-certificates \
       cyrus-sasl \
       cyrus-sasl-plain \
