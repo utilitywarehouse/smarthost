@@ -47,6 +47,7 @@ if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
   echo '/^From: (.*)/ REPLACE Reply-To: $1' > /etc/postfix/header_checks
   echo '/^Reply-To: .*/ IGNORE' >> /etc/postfix/header_checks
+  echo '/^DKIM-Signature: .*/ IGNORE' >> /etc/postfix/header_checks
 fi
 
 ## run 'virtual' watcher
