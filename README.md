@@ -1,7 +1,5 @@
 # Simple Dockerized version of Postfix
 
-[![Docker Repository on Quay](https://quay.io/repository/utilitywarehouse/smarthost/status "Docker Repository on Quay")](https://quay.io/repository/utilitywarehouse/smarthost)
-
 Minimalist version of postfix to work primarily as relayhost using SASL auth.
 It is using Alpine latest and Postfix>3.4
 
