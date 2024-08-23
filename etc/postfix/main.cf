@@ -19,14 +19,14 @@ append_dot_mydomain = no
 readme_directory = no
 
 # TLS parameters
-smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
-smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+smtpd_tls_session_cache_database = lmdb:${data_directory}/smtpd_scache
+smtp_tls_session_cache_database = lmdb:${data_directory}/smtp_scache
 
 # See /usr/share/doc/postfix/TLS_README.gz in the postfix-doc package for
 # information on enabling SSL in the smtp client.
 
-alias_database = hash:/etc/aliases
-alias_maps = hash:/etc/aliases
+alias_database = lmdb:/etc/aliases
+alias_maps = lmdb:/etc/aliases
 debug_peer_list = 127.0.0.1
 header_size_limit = 4096000
 inet_interfaces = all
@@ -44,7 +44,7 @@ smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
 
 smtpd_recipient_restrictions =
-  check_recipient_access hash:/etc/postfix/blacklisted_domains,
+  check_recipient_access lmdb:/etc/postfix/blacklisted_domains,
   permit_mynetworks,
   reject_unauth_destination,
   check_policy_service unix:private/policy-spf,
@@ -53,7 +53,7 @@ smtpd_recipient_restrictions =
   reject_rhsbl_client dbl.spamhaus.org
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-virtual_alias_maps = hash:/etc/postfix/virtual
+virtual_alias_maps = lmdb:/etc/postfix/virtual
 policy-spf_time_limit = 3600s
 compatibility_level=2
 recipient_canonical_maps = regexp:/etc/postfix/canonical
