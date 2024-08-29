@@ -48,9 +48,11 @@ smtpd_recipient_restrictions =
   permit_mynetworks,
   reject_unauth_destination,
   check_policy_service unix:private/policy-spf,
-  reject_rbl_client zen.spamhaus.org,
-  reject_rbl_client bl.spamcop.net,
-  reject_rhsbl_client dbl.spamhaus.org
+  reject_rbl_client zen.spamhaus.org=127.0.0.[2..11]
+  reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]
+  reject_rhsbl_helo dbl.spamhaus.org=127.0.1.[2..99]
+  reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99]
+  warn_if_reject reject_rbl_client zen.spamhaus.org=127.255.255.[1..255]
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 virtual_alias_maps = lmdb:/etc/postfix/virtual
