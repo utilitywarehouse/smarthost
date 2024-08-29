@@ -45,12 +45,12 @@ smtp_tls_security_level = encrypt
 
 smtpd_recipient_restrictions =
   check_recipient_access lmdb:/etc/postfix/blacklisted_domains,
+  permit_mynetworks,
   reject_unauth_destination,
   check_policy_service unix:private/policy-spf,
   reject_rbl_client zen.spamhaus.org,
   reject_rbl_client bl.spamcop.net,
-  reject_rhsbl_client dbl.spamhaus.org,
-  permit_mynetworks
+  reject_rhsbl_client dbl.spamhaus.org
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 virtual_alias_maps = lmdb:/etc/postfix/virtual
