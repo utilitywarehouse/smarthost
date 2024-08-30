@@ -43,10 +43,6 @@ smtp_sasl_password_maps = static:
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
 
-smtpd_tls_loglevel = 3
-smtp_tls_loglevel = 3
-debug_peer_level = 2
-
 smtpd_recipient_restrictions =
   reject_rbl_client zen.spamhaus.org,
   reject_rbl_client bl.spamcop.net,
