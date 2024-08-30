@@ -43,13 +43,18 @@ smtp_sasl_password_maps = static:
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
 
-postscreen_dnsbl_sites = zen.spamhaus.org=127.0.0.[2..11]
+smtpd_tls_loglevel = 3
+smtp_tls_loglevel = 3
+debug_peer_level = 2
 
 smtpd_recipient_restrictions =
+  reject_rbl_client zen.spamhaus.org,
+  reject_rbl_client bl.spamcop.net,
+  reject_rhsbl_client dbl.spamhaus.org,
   check_recipient_access lmdb:/etc/postfix/blacklisted_domains,
   permit_mynetworks,
   reject_unauth_destination,
-  check_policy_service unix:private/policy-spf,
+  check_policy_service unix:private/policy-spf
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
 virtual_alias_maps = lmdb:/etc/postfix/virtual
