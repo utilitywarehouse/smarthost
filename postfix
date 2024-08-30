@@ -45,7 +45,7 @@ if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
   # echo '/^From:(.*)<\b[a-zA-Z0-9._%=+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b>/ REPLACE From:$1<'${SENDER_CANONICAL_ADDRESS}'>' > /etc/postfix/second_header_checks
   echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
-  echo '/^From: (.*)/ REPLACE Reply-To: $1' > /etc/postfix/header_checks
+  # echo '/^From: (.*)/ REPLACE Reply-To: $1' > /etc/postfix/header_checks
   echo '/^Reply-To: .*/ IGNORE' >> /etc/postfix/header_checks
 fi
 
