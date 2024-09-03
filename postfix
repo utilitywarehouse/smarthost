@@ -36,8 +36,8 @@ postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
 if [[ ${CHECK_BLOCKLISTS} == "true" ]]; then
-  postconf -e "smtpd_recipient_restrictions += reject_rbl_client zen.spamhaus.org=127.0.0.[2..11]"
-  postconf -e "smtpd_recipient_restrictions += reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]"
+  blocklists="reject_rbl_client zen.spamhaus.org=127.0.0.[2..11], reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]"
+  postconf -e "smtpd_recipient_restrictions = $(smtpd_recipient_restrictions), ${blocklists}"
 fi
 
 ## validate SPF
