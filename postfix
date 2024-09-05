@@ -37,8 +37,7 @@ postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
 if [[ ${CHECK_BLOCKLISTS} == "true" ]]; then
   existing=$(postconf -h smtpd_recipient_restrictions)
-  blocklists="reject_rbl_client zen.spamhaus.org=127.0.0.[2..11]"
-  blocklists="$blocklists reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]"
+  blocklists="reject_rbl_client bl.spamcop.net"
   postconf -e "smtpd_recipient_restrictions = $existing $blocklists"
 fi
 
