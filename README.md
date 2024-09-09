@@ -20,6 +20,7 @@ It is using Alpine latest and Postfix>3.4
   certificate file
 - `TLS_KEY_PATH` - (string) if using TLS to receive emails, path to
   key file
+- `CHECK_BLOCKLISTS` - (boolean) check if the sender is in a public blocklist such as SpamCop, SpamHaus, etc.
 
 ## Running
 
