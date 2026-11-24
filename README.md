@@ -1,7 +1,7 @@
 # Simple Dockerized version of Postfix
 
 Minimalist version of postfix to work primarily as relayhost using SASL auth.
-It is using Alpine latest and Postfix>3.4
+It uses a pinned Alpine release (by digest) and Postfix > 3.4.
 
 ## Arguments
 
@@ -21,6 +21,10 @@ It is using Alpine latest and Postfix>3.4
 - `TLS_KEY_PATH` - (string) if using TLS to receive emails, path to
   key file
 - `CHECK_BLOCKLISTS` - (boolean) check if the sender is in a public blocklist such as SpamCop, SpamHaus, etc.
+- `REJECT_SENDER_DOMAINS` - (string) space or comma separated sender domains to
+  refuse at SMTP time (subdomains included), for example a domain that is not
+  verified in Amazon SES: the client gets `554 5.7.1 ... Sender domain not
+  allowed on this relay` straight away instead of a bounce later. Empty: off.
 
 ## Running
 
