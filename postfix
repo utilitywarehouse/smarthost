@@ -57,6 +57,16 @@ postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
+## STARTTLS only with a certificate: without one, a client that takes the offer
+## gets "454 TLS not available due to local problem" instead of sending in
+## plain text. Set both ways on every start, so a kept main.cf cannot carry the
+## previous value.
+if [ -n "${TLS_CERT_PATH}" ]; then
+  postconf -e "smtpd_tls_security_level = may"
+else
+  postconf -e "smtpd_tls_security_level = none"
+fi
+
 if [ "${CHECK_BLOCKLISTS}" = "true" ]; then
   existing=$(postconf -h smtpd_recipient_restrictions)
   blocklists="reject_rbl_client bl.spamcop.net"

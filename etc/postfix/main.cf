@@ -68,7 +68,8 @@ smtpd_data_restrictions = check_sender_access pcre:/etc/postfix/sender_access
 
 ## Receive TLS mail from other servers for our domain. Use Opportunistic TLS as
 ## according to RFC 2487 this MUST NOT be applied in case of a
-## publicly-referenced Postfix SMTP server
+## publicly-referenced Postfix SMTP server. The entrypoint sets it on every
+## start: may with TLS_CERT_PATH, none (no STARTTLS offered) without.
 smtpd_tls_security_level = may
 smtpd_tls_cert_file = /path/to/cert.pem
 smtpd_tls_key_file = /path/to/key.pem

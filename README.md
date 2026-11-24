@@ -19,7 +19,8 @@ It uses a pinned Alpine release (by digest) and Postfix > 3.4.
 - `TLS_CERT_PATH` - (string) if using TLS to receive emails, path to
   certificate file
 - `TLS_KEY_PATH` - (string) if using TLS to receive emails, path to
-  key file
+  key file. With `TLS_CERT_PATH` set, clients may use STARTTLS (opportunistic
+  TLS); without it, STARTTLS is not offered and mail is received in plain text.
 - `CHECK_BLOCKLISTS` - (boolean) check if the sender is in a public blocklist such as SpamCop, SpamHaus, etc.
 - `REJECT_SENDER_DOMAINS` - (string) space or comma separated sender domains to
   refuse at SMTP time (subdomains included), for example a domain that is not
