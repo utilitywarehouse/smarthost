@@ -6,24 +6,46 @@ log() {
   echo "$(date -I'seconds') $1"
 }
 
+watcher_pid=""
+postfix_started=""
+shutting_down=""
+
 shutdown() {
+  [ -z "${shutting_down}" ] || return 0
+  shutting_down="yes"
   log "shutdown"
-  if [[ -n ${VIRTUAL_LOC} ]]; then
-    pkill inotifyd
-    log "stopped inotifyd: exit-code=$?"
+  if [ -n "${watcher_pid}" ]; then
+    kill "${watcher_pid}" 2>/dev/null || true
   fi
-  /usr/sbin/postfix stop
-  log "stopped postfix: exit-code=$?"
+  rc=0
+  /usr/sbin/postfix stop || rc=$?
+  log "stopped postfix: exit-code=${rc}"
+  if [ -n "${postfix_started}" ]; then
+    exit "${rc}"
+  fi
   exit 0
 }
 
+## before postfix starts there is nothing to reload: the master reads the files when it starts
 postfix_reload() {
+  [ -z "${shutting_down}" ] || return 0
   log "Received signal to reload postfix configuration"
-  /usr/sbin/postfix reload
+  if [ -n "${postfix_started}" ]; then
+    /usr/sbin/postfix reload || log "reload failed (postfix not running yet?)"
+  fi
 }
 
+## first thing: a signal that arrives during start-up must not kill the script
+## (it is not PID 1 in a pod with a shared process namespace)
 trap 'shutdown' HUP INT QUIT KILL TERM
 trap 'postfix_reload' USR1
+
+LOG_FILTER_REGEX=${LOG_FILTER_REGEX:-^$}
+rc=0
+printf '' | rg -q -e "${LOG_FILTER_REGEX}" - || rc=$?
+if [ "${rc}" -gt 1 ]; then
+  log "LOG_FILTER_REGEX is not a valid regular expression"; exit 1
+fi
 
 postconf -e "debug_peer_list = ${DEBUG_PEER_LIST}"
 postconf -e "mydestination = localhost, ${MYDESTINATION}"
@@ -35,10 +57,40 @@ postconf -e "smtp_sasl_password_maps = static:${SMTP_SASL_PASSWORD_MAPS}"
 postconf -e "smtpd_tls_cert_file = ${TLS_CERT_PATH}"
 postconf -e "smtpd_tls_key_file = ${TLS_KEY_PATH}"
 
-if [[ ${CHECK_BLOCKLISTS} == "true" ]]; then
+if [ "${CHECK_BLOCKLISTS}" = "true" ]; then
   existing=$(postconf -h smtpd_recipient_restrictions)
   blocklists="reject_rbl_client bl.spamcop.net"
   postconf -e "smtpd_recipient_restrictions = $existing $blocklists"
+fi
+
+## Refuse mail from sender domains that the relay host will not accept (for
+## example a domain that is not verified in Amazon SES) at SMTP time: the client
+## gets the error straight away instead of a bounce later. Space or comma
+## separated; subdomains are refused too.
+if [ -n "${REJECT_SENDER_DOMAINS}" ]; then
+  : > /etc/postfix/reject_sender_domains
+  set -f  # no glob expansion of the list
+  for domain in $(printf '%s' "${REJECT_SENDER_DOMAINS}" | tr ',A-Z' ' a-z'); do
+    case "${domain}" in
+      .*|*.|*..*|-*|*-|*.-*|*-.*|*[!a-z0-9.-]*) log "REJECT_SENDER_DOMAINS: invalid domain '${domain}'"; exit 1 ;;
+    esac
+    if [ "${#domain}" -gt 253 ] || printf '%s' "${domain}" | awk -F. '{ for (i = 1; i <= NF; i++) if (length($i) > 63) long = 1 } END { exit !long }'; then
+      log "REJECT_SENDER_DOMAINS: invalid domain '${domain}' (too long)"; exit 1
+    fi
+    # a key listed twice makes smtpd refuse the whole table
+    if grep -q -x -F "${domain} REJECT Sender domain not allowed on this relay" /etc/postfix/reject_sender_domains; then
+      continue
+    fi
+    for key in "${domain}" ".${domain}"; do
+      echo "${key} REJECT Sender domain not allowed on this relay" >> /etc/postfix/reject_sender_domains
+    done
+  done
+  set +f
+  if [ ! -s /etc/postfix/reject_sender_domains ]; then
+    log "REJECT_SENDER_DOMAINS: no domain in '${REJECT_SENDER_DOMAINS}'"; exit 1
+  fi
+  postconf -e "smtpd_sender_restrictions = check_sender_access texthash:/etc/postfix/reject_sender_domains"
+  log "refusing mail from sender domains: $(awk '$1 !~ /^\./ {printf "%s ", $1}' /etc/postfix/reject_sender_domains)"
 fi
 
 ## validate SPF
@@ -47,7 +99,7 @@ sed -i '/postlog/a\\policy-spf  unix  -       n       n       -       -       sp
 ## Adding Gmail style ( ignoring dots). 
 echo "${CANONICAL_PATTERN}" > /etc/postfix/canonical
 
-if [[ -n ${SENDER_CANONICAL_ADDRESS} ]]; then
+if [ -n "${SENDER_CANONICAL_ADDRESS}" ]; then
   echo "/.*/    ${SENDER_CANONICAL_ADDRESS}" > /etc/postfix/sender_canonical
   echo '/^From:(.*)<\b[a-zA-Z0-9._%=+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b>/ REPLACE From:$1<'${SENDER_CANONICAL_ADDRESS}'>' > /etc/postfix/second_header_checks
   echo '/(.*)/  prepend X-Envelope-From: <$1>' > /etc/postfix/sender_access
@@ -60,17 +112,24 @@ fi
 ## This watches custom "virtual" file location, and on change - copies it over
 ## to /etc/postfix/virtual + runs `postmap /etc/postfix/virtual` to update
 ## alias.db
-if [[ -n ${VIRTUAL_LOC} ]]; then
-  mkdir -p $(dirname ${VIRTUAL_LOC})
-  echo '#!/bin/sh
-  if [ "$#" -eq 3 ] && [ "$3" == "$(basename '${VIRTUAL_LOC}')" ]; then
-    echo "[" $(date -uIseconds) "] '${VIRTUAL_LOC}' changed, rebuilding postmap"
-    cp '${VIRTUAL_LOC}' /etc/postfix/virtual
-    postmap /etc/postfix/virtual
-  fi' > /reload && chmod +x /reload && inotifyd /reload $(dirname ${VIRTUAL_LOC}):y &
+if [ -n "${VIRTUAL_LOC}" ]; then
+  mkdir -p "$(dirname "${VIRTUAL_LOC}")"
+  # inotifyd runs it as: /reload <event> <directory> <file>; VIRTUAL_LOC comes from the environment
+  cat > /reload <<'HANDLER'
+#!/bin/sh
+if [ "$#" -eq 3 ] && [ "$3" = "$(basename "${VIRTUAL_LOC}")" ]; then
+  echo "[ $(date -uIseconds) ] ${VIRTUAL_LOC} changed, rebuilding postmap"
+  cp "${VIRTUAL_LOC}" /etc/postfix/virtual
+  postmap /etc/postfix/virtual
+fi
+HANDLER
+  chmod +x /reload
+  export VIRTUAL_LOC
+  inotifyd /reload "$(dirname "${VIRTUAL_LOC}"):y" &
+  watcher_pid=$!
 
   ## rebuild immediately if the file already exists
-  if [[ -e ${VIRTUAL_LOC} ]]; then
+  if [ -e "${VIRTUAL_LOC}" ]; then
     echo "${VIRTUAL_LOC} already exists, rebuilding"
     cp "${VIRTUAL_LOC}" /etc/postfix/virtual
     postmap /etc/postfix/virtual
@@ -80,5 +139,19 @@ fi
 ## run postfix
 ##
 ## stderr + stdout are written to /var/log/maillog so the prometheus exporter can
-## tail the file and export metrics from it
-/usr/sbin/postfix start-fg 2>&1 | tee /var/log/maillog
+## tail the file and export metrics from it. Lines matching LOG_FILTER_REGEX
+## (for example the load balancer health checks) are dropped first.
+##
+## Postfix runs in the background and the script waits for it: a shell only runs
+## a trap when its foreground command ends, so with postfix in the foreground
+## TERM (pod stop) and USR1 (reload) were never handled. wait returns early on
+## a trapped signal, hence the loop.
+postfix_started="yes"
+/usr/sbin/postfix start-fg 2>&1 | rg --line-buffered -v -e "${LOG_FILTER_REGEX}" - | tee /var/log/maillog &
+child=$!
+rc=0
+while kill -0 "${child}" 2>/dev/null; do
+  rc=0
+  wait "${child}" || rc=$?
+done
+exit ${rc}
